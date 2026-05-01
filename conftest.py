@@ -3,7 +3,7 @@ import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-SELENIUM_HUB = os.getenv('SELENIUM_HUB', 'http://localhost:4444/wd/hub')
+SELENIUM_HUB = os.getenv('SELENIUM_HUB', 'http://localhost:4444')
 APP_URL = os.getenv('APP_URL', 'http://web.daws88s.online')
 CATALOGUE_URL = os.getenv('CATALOGUE_URL', 'http://catalogue.daws88s.online:8080')
 
