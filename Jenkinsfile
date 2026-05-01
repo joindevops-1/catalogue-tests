@@ -41,7 +41,6 @@ pipeline {
                         -v \
                         --html=report.html \
                         --self-contained-html \
-                        --junitxml=junit-report.xml \
                         -p no:warnings
                 """
             }
@@ -51,7 +50,6 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: 'report.html', allowEmptyArchive: true
-            junit allowEmptyResults: true, testResults: 'junit-report.xml'
             cleanWs()
         }
         success {
