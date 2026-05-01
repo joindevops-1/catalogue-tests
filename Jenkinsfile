@@ -5,7 +5,7 @@ pipeline {
         }
     }
     environment {
-        NAMESPACE = "roboshop"
+        NAMESPACE = "roboshop-dev"
     }
     options {
         timeout(time: 15, unit: 'MINUTES')
