@@ -37,6 +37,7 @@ pipeline {
         stage('Start Selenium Container') {
             steps {
                 sh """
+                    docker rm -f ${CONTAINER_NAME} || true
                     docker run -d \
                         --name ${CONTAINER_NAME} \
                         -p 4444:4444 \
@@ -82,14 +83,7 @@ pipeline {
 
     post {
         always {
-            publishHTML([
-                allowMissing:         true,
-                alwaysLinkToLastBuild: true,
-                keepAll:              true,
-                reportDir:            '.',
-                reportFiles:          'report.html',
-                reportName:           'Catalogue Selenium Report'
-            ])
+            archiveArtifacts artifacts: 'report.html', allowEmptyArchive: true
             junit allowEmptyResults: true, testResults: 'junit-report.xml'
             // Stop and remove Selenium container regardless of test outcome
             sh "docker rm -f ${CONTAINER_NAME} || true"
