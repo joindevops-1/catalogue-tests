@@ -6,30 +6,37 @@ pipeline {
     }
     environment {
         SELENIUM_HUB   = "http://localhost:4444"
-        APP_URL        = "http://web.daws88s.online"       // roboshop web frontend ingress URL
-        NAMESPACE      = "roboshop"                        // K8s namespace catalogue is deployed in
+        NAMESPACE      = "roboshop"
         CONTAINER_NAME = "selenium-chrome-${BUILD_NUMBER}"
     }
     options {
         timeout(time: 15, unit: 'MINUTES')
     }
     stages {
-        stage('Resolve Catalogue URL') {
+        stage('Resolve URLs') {
             steps {
                 script {
-                    // catalogue is ClusterIP — not reachable from outside the cluster.
-                    // Jenkins agent is in the same VPC, so pod IPs (AWS VPC CNI) are directly routable.
                     def podIP = sh(
                         script: "kubectl get pod -l component=catalogue -n ${NAMESPACE} -o jsonpath='{.items[0].status.podIP}'",
                         returnStdout: true
                     ).trim()
 
                     if (!podIP) {
-                        error("No running catalogue pod found in namespace '${NAMESPACE}'. Check: kubectl get pods -n ${NAMESPACE} -l component=catalogue")
+                        error("No running catalogue pod found in namespace '${NAMESPACE}'.")
                     }
-
                     env.CATALOGUE_URL = "http://${podIP}:8080"
-                    echo "Catalogue pod IP resolved to: ${env.CATALOGUE_URL}"
+                    echo "Catalogue URL: ${env.CATALOGUE_URL}"
+
+                    def webIP = sh(
+                        script: "kubectl get pod -l component=web -n ${NAMESPACE} -o jsonpath='{.items[0].status.podIP}'",
+                        returnStdout: true
+                    ).trim()
+
+                    if (!webIP) {
+                        error("No running web pod found in namespace '${NAMESPACE}'.")
+                    }
+                    env.APP_URL = "http://${webIP}"
+                    echo "Web URL: ${env.APP_URL}"
                 }
             }
         }
