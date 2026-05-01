@@ -48,7 +48,7 @@ pipeline {
                 sh """
                     echo "Waiting for Selenium Grid to be ready..."
                     for i in \$(seq 1 20); do
-                        if curl -sf http://localhost:4444/status | grep -q '"ready":true'; then
+                        if curl -sf http://localhost:4444/status | grep -q '"ready": *true'; then
                             echo "Selenium Grid is ready"
                             exit 0
                         fi
