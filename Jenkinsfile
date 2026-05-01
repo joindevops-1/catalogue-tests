@@ -5,7 +5,7 @@ pipeline {
         }
     }
     environment {
-        SELENIUM_HUB   = "http://localhost:4444/wd/hub"
+        SELENIUM_HUB   = "http://localhost:4444"
         APP_URL        = "http://web.daws88s.online"       // roboshop web frontend ingress URL
         NAMESPACE      = "roboshop"                        // K8s namespace catalogue is deployed in
         CONTAINER_NAME = "selenium-chrome-${BUILD_NUMBER}"
@@ -47,7 +47,7 @@ pipeline {
                 sh """
                     echo "Waiting for Selenium Grid to be ready..."
                     for i in \$(seq 1 20); do
-                        if curl -sf http://localhost:4444/wd/hub/status | grep -q '"ready":true'; then
+                        if curl -sf http://localhost:4444/status | grep -q '"ready":true'; then
                             echo "Selenium Grid is ready"
                             exit 0
                         fi
@@ -62,41 +62,35 @@ pipeline {
 
         stage('Install Python Dependencies') {
             steps {
-                dir('catalogue-tests') {
-                    sh 'pip3 install -r requirements.txt --quiet'
-                }
+                sh 'pip3 install -r requirements.txt --quiet'
             }
         }
 
         stage('Run Catalogue Tests') {
             steps {
-                dir('catalogue-tests') {
-                    sh """
-                        pytest tests/ \
-                            -v \
-                            --html=report.html \
-                            --self-contained-html \
-                            --junitxml=junit-report.xml \
-                            -p no:warnings
-                    """
-                }
+                sh """
+                    pytest tests/ \
+                        -v \
+                        --html=report.html \
+                        --self-contained-html \
+                        --junitxml=junit-report.xml \
+                        -p no:warnings
+                """
             }
         }
     }
 
     post {
         always {
-            dir('catalogue-tests') {
-                publishHTML([
-                    allowMissing:         true,
-                    alwaysLinkToLastBuild: true,
-                    keepAll:              true,
-                    reportDir:            '.',
-                    reportFiles:          'report.html',
-                    reportName:           'Catalogue Selenium Report'
-                ])
-                junit allowEmptyResults: true, testResults: 'junit-report.xml'
-            }
+            publishHTML([
+                allowMissing:         true,
+                alwaysLinkToLastBuild: true,
+                keepAll:              true,
+                reportDir:            '.',
+                reportFiles:          'report.html',
+                reportName:           'Catalogue Selenium Report'
+            ])
+            junit allowEmptyResults: true, testResults: 'junit-report.xml'
             // Stop and remove Selenium container regardless of test outcome
             sh "docker rm -f ${CONTAINER_NAME} || true"
             cleanWs()
