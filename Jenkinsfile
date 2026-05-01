@@ -40,7 +40,7 @@ pipeline {
                     docker rm -f ${CONTAINER_NAME} || true
                     docker run -d \
                         --name ${CONTAINER_NAME} \
-                        -p 4444:4444 \
+                        --network host \
                         --shm-size=2g \
                         selenium/standalone-chrome:latest
                 """
